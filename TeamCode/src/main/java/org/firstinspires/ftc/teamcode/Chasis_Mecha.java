@@ -28,8 +28,6 @@ public class Chasis_Mecha {
             motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
             motor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         }
-        RightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        RightRear.setDirection(DcMotorSimple.Direction.REVERSE);
     }
     public void teleop(GamepadEx gamepad, Telemetry telemetry) {
         double x = -gamepad.getLeftX();
