@@ -29,26 +29,11 @@ public class TeleOp_Funny extends LinearOpMode {
 
         while (opModeIsActive()) {
             driver.readButtons();
-            body.teleop(driver, telemetry);
-
             if (driver.isDown(GamepadKeys.Button.LEFT_BUMPER)) {
-                double x = driver.getLeftX();
-                double y = driver.getLeftY();
-                double r = driver.getRightX();
-
-                x = body.addons(x) * body.reverse;
-                y = body.addons(y) * body.reverse;
-                r = body.addons(r);
-
-                double LeftFrontPower = y + x + r;
-                double RightFrontPower = y - x - r;
-                double LeftRearPower = y - x + r;
-                double RightRearPower = y + x - r;
-
-                body.LeftFront.setPower(body.clip(LeftFrontPower / body.powerReduction));
-                body.RightFront.setPower(body.clip(RightFrontPower / body.powerReduction));
-                body.LeftRear.setPower(body.clip(LeftRearPower / body.powerReduction));
-                body.RightRear.setPower(body.clip(RightRearPower / body.powerReduction));
+                body.Slow_Motion(driver, telemetry);
+            }
+            else{
+                body.teleop(driver, telemetry);
             }
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());

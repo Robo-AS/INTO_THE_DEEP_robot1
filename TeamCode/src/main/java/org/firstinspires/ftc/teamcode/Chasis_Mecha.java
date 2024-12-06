@@ -2,9 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import static org.firstinspires.ftc.teamcode.Constants.CONTROLLER_DEADZONE;
@@ -51,6 +49,25 @@ public class Chasis_Mecha {
         RightFront.setPower(clip(RightFrontPower));
         LeftRear.setPower(clip(LeftRearPower));
         RightRear.setPower(clip(RightRearPower));
+    }
+    public void Slow_Motion(GamepadEx gamepad, Telemetry telemetry){
+        double x = -gamepad.getLeftX();
+        double y = -gamepad.getLeftY();
+        double r = -gamepad.getRightX();
+
+        x = addons(x) * reverse;
+        y = addons(y) * reverse;
+        r = addons(r);
+
+        double LeftFrontPower = (y + x + r);
+        double RightFrontPower = (y - x - r);
+        double LeftRearPower = (y - x + r);
+        double RightRearPower = (y + x - r);
+
+        LeftFront.setPower(clip(LeftFrontPower/powerReduction));
+        RightFront.setPower(clip(RightFrontPower/powerReduction));
+        LeftRear.setPower(clip(LeftRearPower/powerReduction));
+        RightRear.setPower(clip(RightRearPower/powerReduction));
     }
     public double addons(double value) {
         if (Math.abs(value) < CONTROLLER_DEADZONE) return 0;
