@@ -26,15 +26,15 @@ public class Mecanum {
     private List<DcMotorEx> motors;
 
     double reverse = 1.0;
-    public static double powerReduction = 20;
+    public static double powerReduction = 5;
 
     public double leftFrontPower, rightFrontPower, leftRearPower, rightRearPower, normalizer, x, y, r;
 
 
     public Mecanum(HardwareMap hardwareMap) {
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftRear = hardwareMap.get(DcMotorEx.class, "leftRear");
-        rightRear = hardwareMap.get(DcMotorEx.class, "rightRear");
+        leftRear = hardwareMap.get(DcMotorEx.class, "leftBack");
+        rightRear = hardwareMap.get(DcMotorEx.class, "rightBack");
         rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
@@ -43,9 +43,6 @@ public class Mecanum {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
-
-        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void motorMath(GamepadEx gamepad){
