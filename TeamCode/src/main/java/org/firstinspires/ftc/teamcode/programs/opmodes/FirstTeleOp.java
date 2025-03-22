@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.programs.subsystems.Arm;
+import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Mecanum;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Lift;
-import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 
@@ -22,13 +22,13 @@ public class FirstTeleOp extends LinearOpMode {
     Mecanum mecanum;
     Lift lift;
     Arm arm;
-    Camera camera;
 
+    private Camera camera;
     private ElapsedTime runtime = new ElapsedTime();
     double loopTime = 0;
     @Override
     public void runOpMode() {
-
+        camera = new Camera();
         driver = new GamepadEx(gamepad1);
         operator = new GamepadEx(gamepad2);
 
@@ -50,6 +50,7 @@ public class FirstTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
+            telemetry.addData("Status: ", "Python processing");
 
             if(driver.isDown(GamepadKeys.Button.LEFT_BUMPER)){
                 mecanum.slowMotion(driver);
@@ -60,15 +61,17 @@ public class FirstTeleOp extends LinearOpMode {
 
             lift.loop(driver);
             arm.loop(driver);
-            camera.loop();
 
+            while(camera.isBlueObjectDetected())
+            {
+                mecanum.moveForwardForWebcamTest();
+            }
             double loop = System.nanoTime();
 
             telemetry.addData("hz", 1000000000 / (loop - loopTime));
             loopTime = loop;
             telemetry.update();
         }
-
     }
 
 }

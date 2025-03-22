@@ -82,6 +82,13 @@ public class Mecanum {
         rightRear.setPower(rightRearPower/powerReduction);
     }
 
+    public void moveForwardForWebcamTest(){
+        leftFront.setPower(0.5);
+        rightFront.setPower(0.5);
+        leftRear.setPower(0.5);
+        rightRear.setPower(0.5);
+    }
+
     public double addons(double value) {
         if (Math.abs(value) < CONTROLLER_DEADZONE) return 0;
         return value * ROBOT_SPEED;
