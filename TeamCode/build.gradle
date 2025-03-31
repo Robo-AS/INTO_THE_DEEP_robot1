@@ -1,25 +1,40 @@
-//
 // build.gradle in TeamCode
-//
-// Most of the definitions for building your module reside in a common, shared
-// file 'build.common.gradle'. Being factored in this way makes it easier to
-// integrate updates to the FTC into your code. If you really need to customize
-// the build definitions, you can place those customizations in this file, but
-// please think carefully as to whether such customizations are really necessary
-// before doing so.
 
+// Include common definitions
+plugins {
+    id 'com.chaquo.python' version '16.0.0'
+}
 
-// Custom definitions may go here
-
-// Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
+    buildFeatures {
+        viewBinding true
+    }
+    dependenciesInfo {
+        includeInApk true
+        includeInBundle true
+    }
+    buildToolsVersion '35.0.0'
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
+    }
+
+    defaultConfig {
+        ndk {
+            abiFilters "arm64-v8a", "x86"
+        }
+
+        python {
+            version "3.8"
+            pip {
+                install "numpy"
+                install "opencv-python-headless"
+            }
+        }
     }
 }
 
@@ -27,6 +42,8 @@ repositories {
     maven {
         url = 'https://maven.brott.dev/'
     }
+    google()
+    mavenCentral()
 }
 
 dependencies {

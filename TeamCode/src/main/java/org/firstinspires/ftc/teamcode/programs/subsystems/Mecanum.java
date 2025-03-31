@@ -82,10 +82,10 @@ public class Mecanum {
         rightRear.setPower(rightRearPower/powerReduction);
     }
 
-    public void moveForwardForWebcamTest(){
+    public void spin() {
         leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftRear.setPower(0.5);
+        leftRear.setPower(-0.5);
+        rightFront.setPower(-0.5);
         rightRear.setPower(0.5);
     }
 

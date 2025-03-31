@@ -20,13 +20,13 @@ import java.util.List;
 public class Lift{
     private DcMotorEx leftSlider, rightSlider;
 
-    private PIDController liftPID;
+    private PIDController liftPIDLeft, liftPIDRight;
 
-    public static double ilift = 0.11, plift = 0.007, dlift = 0.00006;
+    public static double i_lift_left = 0.11, p_lift_left = 0.04, d_lift_left = 0.00006, i_lift_right = 0.17, p_lift_right = 0.01, d_lift_right =  0.00012;
     private List<DcMotorEx> sliders;
 
     public int targetPosition = 0, toggleLift = 0;
-    public static int currentPosition;
+    public int currentPositionLeft, currentPositionRight;
 
     public enum LiftState{
         SCORE,
@@ -36,7 +36,8 @@ public class Lift{
         PUT_SPECIMEN,
         UP_FOR_IDLE,
         HIGH_BASKET_AUTO,
-        IDLE
+        IDLE,
+        DOWN
     }
 
     public LiftState liftState = LiftState.IDLE;
@@ -48,14 +49,19 @@ public class Lift{
     public static int UP_FOR_IDLE = 300;
     public static int HIGH_BASKET_AUTO = 840;
     public static int IDLE = 0;
+    public static int DOWN = -5;
 
     public Lift(HardwareMap hardwareMap){
-        liftPID = new PIDController(plift, ilift, dlift);
+        liftPIDLeft = new PIDController(p_lift_left, i_lift_left, d_lift_left);
+        liftPIDRight = new PIDController(p_lift_right, i_lift_right, d_lift_right);
     }
 
     public void initializeLift(HardwareMap hardwareMap){
         leftSlider = hardwareMap.get(DcMotorEx.class, "leftSlider");
         rightSlider = hardwareMap.get(DcMotorEx.class, "rightSlider");
+
+        leftSlider.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightSlider.setDirection(DcMotorSimple.Direction.REVERSE);
 
         sliders = Arrays.asList(leftSlider, rightSlider);
 
@@ -67,25 +73,32 @@ public class Lift{
     }
 
     public void initialize() {
-        liftPID.reset();
-        liftState = LiftState.IDLE;
+        liftPIDLeft.reset();
+        liftPIDRight.reset();
+        liftState = LiftState.DOWN;
         targetPosition = 0;
     }
 
     public void loop(GamepadEx gamepadd)
     {
-        currentPosition = leftSlider.getCurrentPosition();
+        currentPositionLeft = leftSlider.getCurrentPosition();
+        currentPositionRight= rightSlider.getCurrentPosition();
 
-        double power = liftPID.calculate(currentPosition, targetPosition);
-        liftPID.setPID(plift, ilift, dlift);
-        leftSlider.setPower(power);
-        rightSlider.setPower(power);
+        double powerLeft = liftPIDLeft.calculate(currentPositionLeft, targetPosition);
+        double powerRight = liftPIDRight.calculate(currentPositionRight, targetPosition);
 
-        if(liftState == LiftState.IDLE)
+        liftPIDLeft.setPID(p_lift_left, i_lift_left, d_lift_left);
+        liftPIDRight.setPID(p_lift_right, i_lift_right, d_lift_right);
+
+        leftSlider.setPower(powerLeft);
+        rightSlider.setPower(powerRight);
+
+        if(liftState == LiftState.DOWN || liftState == LiftState.IDLE)
             updateLiftState(gamepadd);
 
         update(liftState);
     }
+
     public void update(LiftState state){
         liftState = state;
         switch (liftState){
@@ -114,19 +127,22 @@ public class Lift{
             case IDLE:
                 targetPosition = IDLE;
                 break;
+            case DOWN:
+                targetPosition = DOWN;
+                break;
         }
 
     }
     public void updateLiftState(GamepadEx gamepad){
-        if(gamepad.getButton(GamepadKeys.Button.Y) && toggleLift == 0) {
-            liftState = LiftState.SCORE;
-            toggleLift = 1;
-        }
-        else if(gamepad.getButton(GamepadKeys.Button.Y) && toggleLift == 1){
-            liftState = LiftState.IDLE;
-            toggleLift = 0;
+        if (gamepad.wasJustPressed(GamepadKeys.Button.Y)){
+                liftState = LiftState.SCORE;
         }
     }
 
-
+    public void telemetryLift(Telemetry telemetry){
+        telemetry.addData("leftSlider: ", leftSlider.getCurrentPosition());
+        telemetry.update();
+        telemetry.addData("rightSlider: ", rightSlider.getCurrentPosition());
+        telemetry.update();
+    }
 }

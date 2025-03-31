@@ -29,10 +29,10 @@ public class Arm {
         REAR
     }
 
-    public static int FRONT = 50;
-    public static int REAR = 50;
+    public ArmState armstate = ArmState.FRONT;
 
-    public ArmState armstate;
+    public static int FRONT = 0;
+    public static int REAR = 1;
 
     public Arm(HardwareMap hardwareMap){
         armPID = new PIDController(parm, iarm, darm);
@@ -51,9 +51,9 @@ public class Arm {
 
         armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        //armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void loop(GamepadEx gamepad){
@@ -75,19 +75,16 @@ public class Arm {
         switch(armstate) {
             case FRONT:
                 targetPosition = FRONT;
+                break;
             case REAR:
                 targetPosition = REAR;
+                break;
         }
     }
 
     public void updateArmState(GamepadEx gamepad){
-        if(gamepad.getButton(GamepadKeys.Button.A) && toggleArm == 0){
+        if(gamepad.wasJustPressed(GamepadKeys.Button.B)){
             armstate = ArmState.REAR;
-            toggleArm = 1;
-        }
-        else if(gamepad.getButton(GamepadKeys.Button.A) && toggleArm == 1){
-            armstate = ArmState.FRONT;
-            toggleArm = 0;
         }
     }
 }
