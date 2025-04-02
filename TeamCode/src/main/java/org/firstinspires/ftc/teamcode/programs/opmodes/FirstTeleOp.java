@@ -1,77 +1,39 @@
 package org.firstinspires.ftc.teamcode.programs.opmodes;
 
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
-import org.firstinspires.ftc.teamcode.programs.subsystems.Claw;
-import org.firstinspires.ftc.teamcode.programs.subsystems.Mecanum;
-import org.firstinspires.ftc.teamcode.programs.subsystems.Lift;
-import org.firstinspires.ftc.teamcode.programs.subsystems.Arm;
-
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.programs.utils.Robot;
 
-@TeleOp(name = "TeleOpDrive", group = "Linear Opmode")
+@TeleOp(name = "TeleOp", group = "OpModes")
+public class FirstTeleOp extends CommandOpMode {
+    private final Robot robot = Robot.getInstance();
+    private GamepadEx gamepadEx;
+    private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
-public class FirstTeleOp extends LinearOpMode {
-    GamepadEx driver;
-    GamepadEx operator;
-
-    public Mecanum mecanum;
-    Lift lift;
-    Arm arm;
-    Camera camera;
-
-    Claw claw;
-    private ElapsedTime runtime = new ElapsedTime();
-    double loopTime = 0;
     @Override
-    public void runOpMode()
-    {
-        driver = new GamepadEx(gamepad1);
-        operator = new GamepadEx(gamepad2);
+    public void initialize(){
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        CommandScheduler.getInstance().reset();
 
-        mecanum = new Mecanum(hardwareMap);
-        lift = new Lift(hardwareMap);
-        arm = new Arm(hardwareMap);
-        camera = new Camera(hardwareMap, telemetry);
-        claw = new Claw(hardwareMap);
+        gamepadEx = new GamepadEx(gamepad1);
+        robot.initializeHardware(hardwareMap);
+        robot.initialize();
 
-        waitForStart();
-        lift.initializeLift(hardwareMap);
-        arm.initializeHardware(hardwareMap);
-        runtime.reset();
-
-        while(opModeIsActive()) {
-            driver.readButtons();
-            operator.readButtons();
-
-
-            if(driver.isDown(GamepadKeys.Button.LEFT_BUMPER)){
-                mecanum.slowMotion(driver);
-            }
-            else {
-                mecanum.teleop(driver, telemetry);
-            }
-
-            lift.loop(driver);
-
-            if(driver.wasJustPressed(GamepadKeys.Button.A)){
-                lift.initialize();
-            }
-
-            arm.loop(driver);
-
-            if(driver.wasJustPressed(GamepadKeys.Button.X)){
-                 arm.initialize();
-            }
-
-            //camera.cameraLoop(mecanum, claw);
-
-            claw.loop(driver);
-        }
     }
 
+    @Override
+    public void run(){
+        CommandScheduler.getInstance().run();
+
+
+
+        telemetry.addData("Current Position", robot.rightSlider.getCurrentPosition());
+        telemetry.addData("Target Position", robot.lift.getTargetPosition());
+        telemetry.update();
+
+    }
 }
