@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * Top-level build file for ftc_app project.
  *
@@ -21,9 +22,65 @@ allprojects {
     repositories {
         mavenCentral()
         google()
+=======
+import java.text.SimpleDateFormat
+// build.gradle in FtcRobotController
+
+apply plugin: 'com.android.library'
+apply plugin: 'com.chaquo.python'
+
+android {
+    compileSdkVersion 35
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 28
+        buildConfigField "String", "APP_BUILD_TIME", '"' + (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.ROOT).format(new Date())) + '"'
+
+        ndk {
+            abiFilters "arm64-v8a", "x86"
+        }
+
+        python {
+            pip {
+                install "numpy"
+                install "opencv-python-headless"
+            }
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    namespace = 'com.qualcomm.ftcrobotcontroller'
+}
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.2'  // Adjust AGP version if needed
+        classpath 'com.chaquo.python:gradle:16.0.0'
+>>>>>>> 69e0afa (Initial commit)
     }
 }
 
 repositories {
+<<<<<<< HEAD
     mavenCentral()
 }
+=======
+    google()
+    mavenCentral()
+}
+
+apply from: '../build.dependencies.gradle'
+>>>>>>> 69e0afa (Initial commit)

@@ -1,2 +1,14 @@
+<<<<<<< HEAD
+=======
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+        maven { url "https://chaquo.com/maven" }
+    }
+}
+
+>>>>>>> 69e0afa (Initial commit)
 include ':FtcRobotController'
 include ':TeamCode'

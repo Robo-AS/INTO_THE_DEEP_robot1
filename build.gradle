@@ -21,6 +21,10 @@ allprojects {
     repositories {
         mavenCentral()
         google()
+<<<<<<< HEAD
+=======
+        maven { url "https://chaquo.com/maven" }
+>>>>>>> 69e0afa (Initial commit)
     }
 }
 
