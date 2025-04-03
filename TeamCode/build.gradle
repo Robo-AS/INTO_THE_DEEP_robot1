@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 //
 // build.gradle in TeamCode
 //
@@ -13,7 +13,7 @@
 // Custom definitions may go here
 
 // Include common definitions from above.
-=======
+
 // build.gradle in TeamCode
 
 // Include common definitions
@@ -21,14 +21,12 @@ plugins {
     id 'com.chaquo.python' version '16.0.0'
 }
 
->>>>>>> 69e0afa (Initial commit)
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
-<<<<<<< HEAD
-=======
+
     buildFeatures {
         viewBinding true
     }
@@ -37,13 +35,11 @@ android {
         includeInBundle true
     }
     buildToolsVersion '35.0.0'
->>>>>>> 69e0afa (Initial commit)
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
-<<<<<<< HEAD
-=======
+
 
     defaultConfig {
         ndk {
@@ -58,18 +54,15 @@ android {
             }
         }
     }
->>>>>>> 69e0afa (Initial commit)
 }
 
 repositories {
     maven {
         url = 'https://maven.brott.dev/'
     }
-<<<<<<< HEAD
-=======
+
     google()
     mavenCentral()
->>>>>>> 69e0afa (Initial commit)
 }
 
 dependencies {
@@ -79,11 +72,9 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:core:1.0.0"
     implementation "com.acmerobotics.roadrunner:actions:1.0.0"
     implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
-<<<<<<< HEAD
-=======
+
     implementation 'org.ftclib.ftclib:vision:2.1.0'
     implementation 'org.ftclib.ftclib:core:2.1.1'
 
     implementation 'org.openftc:easyopencv:1.7.3'
->>>>>>> 69e0afa (Initial commit)
 }

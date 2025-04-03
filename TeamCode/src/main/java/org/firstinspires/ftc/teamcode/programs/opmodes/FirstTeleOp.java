@@ -5,7 +5,10 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.programs.commandbase.outtake.FromHighBasketBackToIdle;
 import org.firstinspires.ftc.teamcode.programs.utils.Robot;
 
 @TeleOp(name = "TeleOp", group = "OpModes")
@@ -23,13 +26,17 @@ public class FirstTeleOp extends CommandOpMode {
         robot.initializeHardware(hardwareMap);
         robot.initialize();
 
+        gamepadEx.getGamepadButton(GamepadKeys.Button.Y).whenPressed(new FromHighBasketBackToIdle());
+
     }
 
     @Override
     public void run(){
         CommandScheduler.getInstance().run();
 
-
+        robot.lift.loop();
+        robot.arm.loop();
+        robot.mecanum.loop(gamepadEx);
 
         telemetry.addData("Current Position", robot.rightSlider.getCurrentPosition());
         telemetry.addData("Target Position", robot.lift.getTargetPosition());

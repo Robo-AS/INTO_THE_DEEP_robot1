@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.programs.utils.Robot;
 @Config
 public class Lift extends SubsystemBase {
     private final Robot robot = Robot.getInstance();
-
     public enum LiftState{
         IDLE,
         SCORE
@@ -18,10 +17,7 @@ public class Lift extends SubsystemBase {
 
     public LiftState liftState = LiftState.IDLE;
     public static int IDLE = 0;
-    public static int SCORE = 0;
-
-
-
+    public static int SCORE = 100;
 
     private PIDController sliders_pid;
     public static int targetPosition = 0;
@@ -63,5 +59,4 @@ public class Lift extends SubsystemBase {
     public double getTargetPosition(){
         return targetPosition;
     }
-
 }

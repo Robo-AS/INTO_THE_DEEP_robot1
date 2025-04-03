@@ -21,11 +21,9 @@ apply plugin: 'com.android.application'
 
 android {
 
-<<<<<<< HEAD
     compileSdkVersion 30
-=======
+
     compileSdk 34
->>>>>>> 69e0afa (Initial commit)
 
     signingConfigs {
         release {
@@ -57,10 +55,8 @@ android {
         minSdkVersion 24
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 28
-<<<<<<< HEAD
-=======
+
         multiDexEnabled true
->>>>>>> 69e0afa (Initial commit)
 
         /**
          * We keep the versionCode and versionName of robot controller applications in sync with
@@ -97,22 +93,16 @@ android {
             signingConfig signingConfigs.release
 
             ndk {
-<<<<<<< HEAD
                 abiFilters "armeabi-v7a", "arm64-v8a"
-=======
                 abiFilters "armeabi-v7a"
->>>>>>> 69e0afa (Initial commit)
             }
         }
         debug {
             debuggable true
             jniDebuggable true
             ndk {
-<<<<<<< HEAD
                 abiFilters "armeabi-v7a", "arm64-v8a"
-=======
                 abiFilters "armeabi-v7a"
->>>>>>> 69e0afa (Initial commit)
             }
         }
     }
@@ -129,9 +119,6 @@ android {
 }
 
 repositories {
-<<<<<<< HEAD
-=======
     mavenCentral()
->>>>>>> 69e0afa (Initial commit)
 }
 
