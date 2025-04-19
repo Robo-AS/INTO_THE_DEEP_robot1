@@ -11,17 +11,18 @@ public class Arm extends SubsystemBase{
     private Robot robot = Robot.getInstance();
 
     public enum ArmState{
-        FRONT, REAR
+        FRONT, REAR, PICKUP
     }
 
     public ArmState armState = ArmState.FRONT;
     public static int FRONT = 0;
-    public static int REAR = 10;
+    public static int PICKUP = -100;
+    public static int REAR = 1300;
 
 
     private PIDController arm_pid;
     public static int targetPosition = 0, currentPosition = 0;
-    public static double p_arm = 0, i_arm = 0, d_arm = 0;
+    public static double p_arm = 0.01, i_arm = 0.009, d_arm = 0.0001;
 
     public Arm(){
         arm_pid = new PIDController(p_arm, i_arm, d_arm);
@@ -40,8 +41,7 @@ public class Arm extends SubsystemBase{
         arm_pid.setPID(p_arm, i_arm ,d_arm);
 
         double power = arm_pid.calculate(currentPosition, targetPosition);
-        robot.leftSlider.setPower(power);
-        robot.rightSlider.setPower(power);
+        robot.armMotor.setPower(power);
     }
 
     public void update(ArmState state){
@@ -54,6 +54,13 @@ public class Arm extends SubsystemBase{
             case REAR:
                 targetPosition = REAR;
                 break;
+            case PICKUP:
+                targetPosition = PICKUP;
+                break;
         }
+    }
+
+    public double getTargetPosition(){
+        return targetPosition;
     }
 }

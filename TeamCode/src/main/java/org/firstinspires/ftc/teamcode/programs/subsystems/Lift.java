@@ -12,17 +12,19 @@ public class Lift extends SubsystemBase {
     private final Robot robot = Robot.getInstance();
     public enum LiftState{
         IDLE,
-        SCORE
+        SCORE,
+        PICKUP
     }
 
     public LiftState liftState = LiftState.IDLE;
     public static int IDLE = 0;
-    public static int SCORE = 100;
+    public static int PICKUP = 50;
+    public static int SCORE = 2000;
 
     private PIDController sliders_pid;
     public static int targetPosition = 0;
     public static int currentPosition = 0;
-    public static double p_sliders = 0, d_sliders = 0, i_sliders = 0;
+    public static double p_sliders = 0.02, d_sliders = 0.009, i_sliders = 0.0001;
 
     public Lift(){
         sliders_pid = new PIDController(p_sliders, d_sliders, i_sliders);
@@ -52,6 +54,9 @@ public class Lift extends SubsystemBase {
 
             case SCORE:
                 targetPosition = SCORE;
+                break;
+            case PICKUP:
+                targetPosition = PICKUP;
                 break;
         }
     }

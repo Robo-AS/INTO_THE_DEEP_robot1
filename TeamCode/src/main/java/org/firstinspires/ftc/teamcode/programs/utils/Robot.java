@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode.programs.utils;
 
+import com.qualcomm.ftccommon.CommandList;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.programs.subsystems.Arm;
+import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
+import org.firstinspires.ftc.teamcode.programs.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Mecanum;
 
@@ -14,26 +18,29 @@ import java.util.List;
 
 public class Robot {
     private static Robot instance = null;
-    private static Lift instanceLift = null;
-    private static Arm instanceArm = null;
-    private HardwareMap hardwareMap;
+    private static HardwareMap hardwareMap;
 
     //Lift Hardware
     public DcMotorEx leftSlider, rightSlider;
-    public Lift lift;
-
-    // Arm Hardware
-
-    public DcMotorEx armMotor;
-    public Arm arm;
-
-    //Mecanum hardware
 
     public DcMotorEx leftFront, leftRear, rightRear, rightFront;
     public List<DcMotorEx> motors;
 
-    public Mecanum mecanum;
+    // Arm Hardware
 
+    public DcMotorEx armMotor;
+    private static Arm arm = null;
+
+    public Mecanum mecanum;
+    public Camera camera;
+
+    private static Claw claw = null;
+
+    private static Lift lift = null;
+
+    public Servo servo0, servo1, servo2, servo3, servo4;
+
+    //Mecanum hardware
 
     public static Robot getInstance() {//Why would i want to use this? It seems a bit useless
         if (instance == null) {
@@ -53,6 +60,8 @@ public class Robot {
         rightRear = hardwareMap.get(DcMotorEx.class, "rightBack");
         rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
 
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
         for (DcMotorEx motor : motors) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -61,14 +70,13 @@ public class Robot {
         }
 
         mecanum = new Mecanum();
-
         //lift
 
         leftSlider = hardwareMap.get(DcMotorEx.class, "leftSlider");
         rightSlider = hardwareMap.get(DcMotorEx.class, "rightSlider");
 
         leftSlider.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightSlider.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightSlider.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftSlider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftSlider.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -77,8 +85,6 @@ public class Robot {
         rightSlider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightSlider.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightSlider.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        lift = new Lift();
 
         //arm
 
@@ -90,27 +96,50 @@ public class Robot {
 
         armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        arm = new Arm();
+       // Servo extendServo = hardwareMap.get(Servo.class, "extendServo");
 
+        //Claw
+
+        servo0 = hardwareMap.get(Servo.class, "servo0");
+        servo1 = hardwareMap.get(Servo.class, "servo1");
+        servo2 = hardwareMap.get(Servo.class, "servo2");
+        servo3 = hardwareMap.get(Servo.class, "servo3");
+        servo4 = hardwareMap.get(Servo.class, "servo4");
+
+        servo3.setDirection(Servo.Direction.REVERSE);
+        servo1.setDirection(Servo.Direction.REVERSE);
+
+        camera = new Camera();
     }
 
     public void initialize() {
-        arm.initialize();
-        lift.initialize();
+        Robot.getInstance().getInstanceArm().initialize();
+        Robot.getInstance().getInstanceLift().initialize();
+        Robot.getInstance().getInstanceClaw().initialize();
+        Robot.getInstance().camera.init();
     }
 
     public static Lift getInstanceLift(){
-        if (instanceLift == null) {
-            instanceLift = new Lift();
+        if (lift == null) {
+            lift = new Lift();
         }
-        return instanceLift;
+        return lift;
     }
     public static Arm getInstanceArm(){
-        if (instanceArm == null) {
-            instanceArm = new Arm();
+        if (arm == null) {
+            arm = new Arm();
         }
-        return instanceArm;
+        return arm;
     }
 
+    public static Claw getInstanceClaw(){
+        if (claw == null) {
+            claw = new Claw();
+        }
+        return claw;
+    }
 
+    public static HardwareMap getInstanceHardwareMap(){
+        return hardwareMap;
+    }
 }

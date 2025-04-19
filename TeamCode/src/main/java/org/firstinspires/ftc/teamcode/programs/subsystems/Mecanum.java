@@ -47,7 +47,7 @@ public class Mecanum {
 
 
     public void teleop(GamepadEx gamepad) {
-        motorMath(gamepad);
+        robot.mecanum.motorMath(gamepad);
 
         robot.leftFront.setPower(leftFrontPower);
         robot.rightFront.setPower(rightFrontPower);
@@ -57,7 +57,7 @@ public class Mecanum {
 
     public void slowMotion(GamepadEx gamepad)
     {
-        motorMath(gamepad);
+        robot.mecanum.motorMath(gamepad);
 
         robot.leftFront.setPower(leftFrontPower/powerReduction);
         robot.rightFront.setPower(rightFrontPower/powerReduction);
@@ -74,10 +74,10 @@ public class Mecanum {
 
     public void loop(GamepadEx gamepad){
         if(gamepad.isDown(GamepadKeys.Button.LEFT_BUMPER)){
-            slowMotion(gamepad);
+            robot.mecanum.slowMotion(gamepad);
         }
         else{
-            teleop(gamepad);
+            robot.mecanum.teleop(gamepad);
         }
     }
 
