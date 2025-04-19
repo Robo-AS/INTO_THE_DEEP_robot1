@@ -65,11 +65,12 @@ public class Camera extends OpMode {
     public void loop(){
     }
 
-    public double sampleAngle(){
-        double oneDegree = 0.00278;
-        double ClawPivotPos = 0.5-(oneDegree*(int)angle);
-        return ClawPivotPos;
+    public double sampleAngle() {
+        double normalized = 1.0 - (angle / 180.0);
+        return Range.clip(normalized, 0.0, 1.0);
     }
+
+
 
     class colorDetection extends OpenCvPipeline {
         @Override
@@ -160,15 +161,42 @@ public class Camera extends OpMode {
         return distance;
     }
     public double getAngle(MatOfPoint largestContour) {
-
-
         if (largestContour == null || largestContour.toArray().length == 0) {
-            // no countours were found so we return anull value
             return Double.NaN;
         }
+
         RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(largestContour.toArray()));
-        angle = rotatedRect.angle;
+
+        Point[] rectPoints = new Point[4];
+        rotatedRect.points(rectPoints);
+
+        Point pt1 = rectPoints[0];
+        Point pt2 = rectPoints[1];
+        double maxDist = distance(pt1, pt2);
+
+        for (int i = 1; i < 4; i++) {
+            double dist = distance(rectPoints[i], rectPoints[(i + 1) % 4]);
+            if (dist > maxDist) {
+                maxDist = dist;
+                pt1 = rectPoints[i];
+                pt2 = rectPoints[(i + 1) % 4];
+            }
+        }
+
+        double dx = pt2.x - pt1.x;
+        double dy = pt2.y - pt1.y;
+        double angle = Math.toDegrees(Math.atan2(dy, dx));
+
+        // Normalize to [0, 180)
+        if (angle < 0) {
+            angle += 180;
+        }
 
         return angle;
     }
+
+    private double distance(Point a, Point b) {
+        return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    }
+
 }
