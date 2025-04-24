@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.programs.subsystems;
 
+import org.opencv.core.MatOfDouble;
 import org.opencv.core.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -9,8 +10,12 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import org.firstinspires.ftc.teamcode.programs.utils.Robot;
+import org.opencv.calib3d.Calib3d;
+import org.opencv.core.CvType;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.RotatedRect;
+import org.opencv.core.MatOfPoint3f;
+import org.opencv.core.Point3;
 import org.opencv.imgproc.Moments;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -25,29 +30,34 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @TeleOp
 public class Camera extends OpMode {
-    double cX = 0;
-    double cY = 0;
-    double width = 0;
-    double angle = 0;
+    double cX = 0, cY = 0, width = 0, angle = 0;
     public static final double objectWidthInRealWorldUnits = 3.5;
-    public static final double focalLength = 720;
     OpenCvWebcam webcam = null;
     colorDetection pipeline;
+    public Mat cameraMatrix;
+    public MatOfDouble distCoeffs;
 
     @Override
-    public void init(){
+    public void init() {
+        cameraMatrix = new Mat(3, 3, CvType.CV_64F);
+        distCoeffs = new MatOfDouble(0.82856579, -29.9885279, 0.01559277, 0.00330627, 367.63255);
+
+        cameraMatrix.put(0, 0, new double[]{
+                1941.37278, 0, 626.320287,
+                0, 1940.45508, 406.938078,
+                0, 0, 1
+        });
+
         WebcamName webcamName = Robot.getInstanceHardwareMap().get(WebcamName.class, "webcam1");
         int cameraID = Robot.getInstanceHardwareMap().appContext.getResources().getIdentifier("cameraID", "id", Robot.getInstanceHardwareMap().appContext.getPackageName());
 
         webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraID);
-
         pipeline = new colorDetection();
-        webcam.setPipeline(new colorDetection());
+        webcam.setPipeline(pipeline);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
@@ -56,64 +66,43 @@ public class Camera extends OpMode {
             }
 
             @Override
-            public void onError(int errorCode) {
-            }
+            public void onError(int errorCode) {}
         });
     }
 
     @Override
-    public void loop(){
-    }
+    public void loop() {}
 
     public double sampleAngle() {
-        double normalized = 1.0 - (angle / 180.0);
+        double normalized = angle / 180.0;
         return Range.clip(normalized, 0.0, 1.0);
     }
 
-
-
     class colorDetection extends OpenCvPipeline {
         @Override
-
         public Mat processFrame(Mat input) {
-            // Preprocess the frame to detect Blue regions
             Mat BlueMask = preprocessFrame(input);
 
-            // Find contours of the detected Blue regions
             List<MatOfPoint> contours = new ArrayList<>();
             Mat hierarchy = new Mat();
             Imgproc.findContours(BlueMask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-            // Find the largest Blue contour (blob)
             MatOfPoint largestContour = findLargestContour(contours);
 
             if (largestContour != null) {
-                // Draw a red outline around the largest detected object
-                Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(0, 255, 255), 2);
-                // Calculate the width of the bounding box
-                width = calculateWidth(largestContour);
-
-                // Display the width next to the label
-                String widthLabel = "Width: " + (int) width + " pixels";
-                Imgproc.putText(input, widthLabel, new Point(cX + 0.50, cY + 25), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                //Display the Distance
-                String distanceLabel = "Distance: " + String.format("%.2f", getDistance(width)) + " inches";
-                Imgproc.putText(input, distanceLabel, new Point(cX + 10, cY + 40), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                // Calculate the centroid of the largest contour
-
-                String angleLabel = "angle:" + getAngle(largestContour) + "degrees";
-                Imgproc.putText(input, angleLabel, new Point(cX + 10, cY + 60), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-
-                angle = getAngle(largestContour);
-
                 Moments moments = Imgproc.moments(largestContour);
                 cX = moments.get_m10() / moments.get_m00();
                 cY = moments.get_m01() / moments.get_m00();
-                // Draw a dot at the centroid
-                String label = "(" + (int) cX + ", " + (int) cY + ")";
-                Imgproc.putText(input, label, new Point(cX + 10, cY), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                Imgproc.circle(input, new Point(cX, cY), 5, new Scalar(0, 255, 0), -1);
 
+                Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(0, 255, 255), 2);
+                width = calculateWidth(largestContour);
+
+                angle = getAngleWithPnP(largestContour);
+
+                Imgproc.putText(input, "Width: " + (int) width + " px", new Point(cX + 5, cY + 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                Imgproc.putText(input, "Distance: " + String.format("%.2f", getDistance(width)) + " in", new Point(cX + 5, cY + 40), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                Imgproc.putText(input, "Angle: " + String.format("%.2f", angle) + " deg", new Point(cX + 5, cY + 60), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                Imgproc.circle(input, new Point(cX, cY), 5, new Scalar(0, 255, 0), -1);
             }
 
             return input;
@@ -122,12 +111,10 @@ public class Camera extends OpMode {
         private Mat preprocessFrame(Mat frame) {
             Mat hsvFrame = new Mat();
             Imgproc.cvtColor(frame, hsvFrame, Imgproc.COLOR_BGR2HSV);
-            //blue samples
             Scalar lowerBlue = new Scalar(0, 100, 100);
             Scalar upperBlue = new Scalar(50, 255, 255);
 
             Mat BlueMask = new Mat();
-
             Core.inRange(hsvFrame, lowerBlue, upperBlue, BlueMask);
 
             Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
@@ -137,10 +124,10 @@ public class Camera extends OpMode {
             return BlueMask;
         }
     }
+
     private MatOfPoint findLargestContour(List<MatOfPoint> contours) {
         double maxArea = 0;
         MatOfPoint largestContour = null;
-
         for (MatOfPoint contour : contours) {
             double area = Imgproc.contourArea(contour);
             if (area > maxArea) {
@@ -148,7 +135,6 @@ public class Camera extends OpMode {
                 largestContour = contour;
             }
         }
-
         return largestContour;
     }
 
@@ -156,47 +142,57 @@ public class Camera extends OpMode {
         Rect boundingRect = Imgproc.boundingRect(contour);
         return boundingRect.width;
     }
+
     public static double getDistance(double width) {
-        double distance = (objectWidthInRealWorldUnits * focalLength) / width;
-        return distance;
-    }
-    public double getAngle(MatOfPoint largestContour) {
-        if (largestContour == null || largestContour.toArray().length == 0) {
-            return Double.NaN;
-        }
-
-        RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(largestContour.toArray()));
-
-        Point[] rectPoints = new Point[4];
-        rotatedRect.points(rectPoints);
-
-        Point pt1 = rectPoints[0];
-        Point pt2 = rectPoints[1];
-        double maxDist = distance(pt1, pt2);
-
-        for (int i = 1; i < 4; i++) {
-            double dist = distance(rectPoints[i], rectPoints[(i + 1) % 4]);
-            if (dist > maxDist) {
-                maxDist = dist;
-                pt1 = rectPoints[i];
-                pt2 = rectPoints[(i + 1) % 4];
-            }
-        }
-
-        double dx = pt2.x - pt1.x;
-        double dy = pt2.y - pt1.y;
-        double angle = Math.toDegrees(Math.atan2(dy, dx));
-
-        // Normalize to [0, 180)
-        if (angle < 0) {
-            angle += 180;
-        }
-
-        return angle;
+        return (objectWidthInRealWorldUnits * 720) / width;
     }
 
-    private double distance(Point a, Point b) {
-        return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    public double getAngleWithPnP(MatOfPoint contour) {
+        MatOfPoint2f approx = new MatOfPoint2f();
+        Imgproc.approxPolyDP(new MatOfPoint2f(contour.toArray()), approx, 0.02 * Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true), true);
+
+        if (approx.total() != 4) return getAngle(contour);
+
+        Point[] pts = approx.toArray();
+        Arrays.sort(pts, Comparator.comparingDouble(p -> p.y + p.x));
+        Point tl = pts[0], br = pts[3];
+        Arrays.sort(pts, Comparator.comparingDouble(p -> p.y - p.x));
+        Point tr = pts[0], bl = pts[3];
+
+        MatOfPoint2f imagePoints = new MatOfPoint2f(tl, tr, br, bl);
+
+        List<Point3> objPoints = Arrays.asList(
+                new Point3(0, 0, 0),
+                new Point3(3.5, 0, 0),
+                new Point3(3.5, 2.0, 0),
+                new Point3(0, 2.0, 0)
+        );
+        MatOfPoint3f objectPoints = new MatOfPoint3f();
+        objectPoints.fromList(objPoints);
+
+        Mat rvec = new Mat(), tvec = new Mat();
+
+        boolean solved = Calib3d.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, rvec, tvec);
+        if (!solved) return getAngle(contour);
+
+        Mat rotMat = new Mat();
+        Calib3d.Rodrigues(rvec, rotMat);
+
+        double yaw = Math.atan2(rotMat.get(1, 0)[0], rotMat.get(0, 0)[0]);
+        double angleDegrees = Math.toDegrees(yaw);
+
+        // Normalize to range [0, 180]
+        if (angleDegrees < 0) {
+             angleDegrees += 180;
+        }
+        return angleDegrees;
+
     }
 
+    public double getAngle(MatOfPoint contour) {
+        if (contour == null || contour.toArray().length == 0) return Double.NaN;
+
+        RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+        return Math.abs(rotatedRect.angle);
+    }
 }

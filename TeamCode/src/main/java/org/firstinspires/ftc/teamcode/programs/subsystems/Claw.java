@@ -11,6 +11,7 @@ public class Claw extends SubsystemBase {
     public enum ClawState{
         IDLE0,
         PICKUP0,
+        SCORE0,
         OPEN,
         CLOSE,
         PICKUP3,
@@ -22,9 +23,10 @@ public class Claw extends SubsystemBase {
     public static double IDLE0 = 0;
     public static double OPEN = 0.5;
     public static double CLOSE = 0.25;
-    public static double PICKUP0 = 0.45;
+    public static double PICKUP0 = 0.5;
     public static double PICKUP3 = 0.25;
-    public static double SCORE3 = 0.75;
+    public static double SCORE3 = 0.45;
+    public static double SCORE0 = 0.25;
     public static double EXTEND = 0;
     public static double RETRACT = 0.5;
 
@@ -34,10 +36,15 @@ public class Claw extends SubsystemBase {
 
     public void initialize(){
         robot.servo0.setPosition(1);
+        targetPosition[0] = 1;
         robot.servo1.setPosition(0.5);
+        targetPosition[1] = 0.5;
         robot.servo2.setPosition(0.25);
+        targetPosition[2] = 0.25;
         robot.servo3.setPosition(0.15);
+        targetPosition[3] = 0.15;
         robot.servo4.setPosition(0.5);
+        targetPosition[4] = 0.5;
     }
 
     public void loop(){
@@ -74,21 +81,9 @@ public class Claw extends SubsystemBase {
             case RETRACT:
                 targetPosition[x] = RETRACT;
                 break;
+            case SCORE0:
+                targetPosition[x] = SCORE0;
+                break;
         }
-    }
-
-    public void pointClawToSample(int sampleX, int frameWidth, double fovDegrees) {
-        int imageCenterX = frameWidth / 2;
-        double pixelOffset = sampleX - imageCenterX;
-        double degreesPerPixel = fovDegrees / frameWidth;
-
-        double angleOffset = pixelOffset * degreesPerPixel;
-
-        double baseAngle = 90;
-        double desiredAngle = baseAngle + angleOffset;
-        desiredAngle = Math.max(0, Math.min(180, desiredAngle));
-
-        double servoPosition = desiredAngle / 180.0;
-        robot.servo1.setPosition(servoPosition);
     }
 }
