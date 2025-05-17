@@ -78,6 +78,20 @@ public class Camera extends OpMode {
         return Range.clip(normalized, 0.0, 1.0);
     }
 
+    public double sliderPositionFromDistance() {
+        double distance = getDistance(width);
+
+        double minDistance = 5.0;
+        double maxDistance = 15.0;
+
+        double normalized = (maxDistance - distance) / (maxDistance - minDistance);
+
+        double sliderValue = 0.5 * normalized;
+
+        return Range.clip(sliderValue, 0.0, 0.5);
+    }
+
+
     class colorDetection extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
@@ -97,7 +111,7 @@ public class Camera extends OpMode {
                 Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(0, 255, 255), 2);
                 width = calculateWidth(largestContour);
 
-                angle = getAngleWithPnP(largestContour);
+                angle = getAngle(largestContour);
 
                 Imgproc.putText(input, "Width: " + (int) width + " px", new Point(cX + 5, cY + 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                 Imgproc.putText(input, "Distance: " + String.format("%.2f", getDistance(width)) + " in", new Point(cX + 5, cY + 40), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
@@ -188,11 +202,23 @@ public class Camera extends OpMode {
         return angleDegrees;
 
     }
-
     public double getAngle(MatOfPoint contour) {
         if (contour == null || contour.toArray().length == 0) return Double.NaN;
 
         RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
-        return Math.abs(rotatedRect.angle);
+        double angle = rotatedRect.angle;
+        Size size = rotatedRect.size;
+
+        // Normalize the angle based on width and height
+        if (size.width < size.height) {
+            angle += 90;
+        } else {
+            angle += 180;
+        }
+
+        // Normalize angle to [0, 180]
+        angle = (angle + 360) % 180;
+        return angle;
     }
+
 }

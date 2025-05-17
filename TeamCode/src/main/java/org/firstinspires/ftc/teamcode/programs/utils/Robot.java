@@ -107,7 +107,7 @@ public class Robot {
         servo4 = hardwareMap.get(Servo.class, "servo4");
 
         servo3.setDirection(Servo.Direction.REVERSE);
-        servo1.setDirection(Servo.Direction.REVERSE);
+      //  servo1.setDirection(Servo.Direction.REVERSE);
 
         camera = new Camera();
     }

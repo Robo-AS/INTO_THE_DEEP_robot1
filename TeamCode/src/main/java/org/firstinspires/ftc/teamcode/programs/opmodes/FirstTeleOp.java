@@ -8,6 +8,7 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.programs.commandbase.intake.PickUpBackToInit;
 import org.firstinspires.ftc.teamcode.programs.commandbase.outtake.FromHighBasketBackToIdle;
 import org.firstinspires.ftc.teamcode.programs.commandbase.intake.IntakeClaw;
 import org.firstinspires.ftc.teamcode.programs.utils.Robot;
@@ -30,6 +31,8 @@ public class FirstTeleOp extends CommandOpMode {
         gamepadEx.getGamepadButton(GamepadKeys.Button.Y).whenPressed(new FromHighBasketBackToIdle());
 
         gamepadEx.getGamepadButton(GamepadKeys.Button.X).whenPressed(new IntakeClaw());
+
+        gamepadEx.getGamepadButton(GamepadKeys.Button.B).whenPressed(new PickUpBackToInit());
     }
 
     @Override

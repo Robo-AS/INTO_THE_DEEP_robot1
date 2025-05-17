@@ -20,12 +20,13 @@ public class Claw extends SubsystemBase {
         RETRACT
     }
 
-    public static double IDLE0 = 0;
+    public static double IDLE0 = 1;
+
     public static double OPEN = 0.5;
     public static double CLOSE = 0.25;
     public static double PICKUP0 = 0.5;
-    public static double PICKUP3 = 0.25;
-    public static double SCORE3 = 0.45;
+    public static double PICKUP3 = 0.30;
+    public static double SCORE3 = 0.50;
     public static double SCORE0 = 0.25;
     public static double EXTEND = 0;
     public static double RETRACT = 0.5;
