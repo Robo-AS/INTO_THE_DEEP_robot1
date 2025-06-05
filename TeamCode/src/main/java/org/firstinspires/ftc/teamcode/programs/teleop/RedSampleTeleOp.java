@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs.opmodes;
+package org.firstinspires.ftc.teamcode.programs.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -11,10 +11,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.programs.commandbase.intake.PickUpBackToInit;
 import org.firstinspires.ftc.teamcode.programs.commandbase.outtake.FromHighBasketBackToIdle;
 import org.firstinspires.ftc.teamcode.programs.commandbase.intake.IntakeClaw;
+import org.firstinspires.ftc.teamcode.programs.commandbase.outtake.HighChamberBackToIdle;
+import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
 import org.firstinspires.ftc.teamcode.programs.utils.Robot;
 
-@TeleOp(name = "TeleOp", group = "OpModes")
-public class FirstTeleOp extends CommandOpMode {
+@TeleOp(name = "RedSampleTeleOp", group = "OpModes")
+public class RedSampleTeleOp extends CommandOpMode {
     private final Robot robot = Robot.getInstance();
     private GamepadEx gamepadEx;
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -33,6 +35,8 @@ public class FirstTeleOp extends CommandOpMode {
         gamepadEx.getGamepadButton(GamepadKeys.Button.X).whenPressed(new IntakeClaw());
 
         gamepadEx.getGamepadButton(GamepadKeys.Button.B).whenPressed(new PickUpBackToInit());
+
+        gamepadEx.getGamepadButton(GamepadKeys.Button.A).whenPressed(new HighChamberBackToIdle());
     }
 
     @Override
@@ -44,6 +48,8 @@ public class FirstTeleOp extends CommandOpMode {
         robot.mecanum.loop(gamepadEx);
         robot.getInstanceClaw().loop();
         robot.camera.loop();
+
+        robot.camera.setDetectionMode(Camera.Detection.RED_YELLOW);
 
         telemetry.addData("Current Position", robot.rightSlider.getCurrentPosition());
         telemetry.addData("Target Position", robot.getInstanceLift().getTargetPosition());

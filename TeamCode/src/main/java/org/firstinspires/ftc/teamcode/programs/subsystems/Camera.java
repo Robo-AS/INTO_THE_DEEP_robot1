@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.programs.subsystems;
 
+import org.ejml.dense.row.misc.ImplCommonOps_DDMA;
 import org.opencv.core.MatOfDouble;
 import org.opencv.core.Size;
 
@@ -34,12 +35,29 @@ import java.util.*;
 
 @TeleOp
 public class Camera extends OpMode {
-    double cX = 0, cY = 0, width = 0, angle = 0;
+    List<MatOfPoint> blues = new ArrayList<>(), reds = new ArrayList<>(), yellows = new ArrayList<>(), contours = new ArrayList<>();
+    public double cX = 0, cY = 0, width = 0, angle = 0;
     public static final double objectWidthInRealWorldUnits = 3.5;
     OpenCvWebcam webcam = null;
     colorDetection pipeline;
     public Mat cameraMatrix;
     public MatOfDouble distCoeffs;
+
+    public double tx = 0.0, ty = 0.0;
+    public static final double CAMERA_OFFSET_CM = 15.5;
+
+    public enum Detection{
+        BLUE,
+        RED,
+        BLUE_YELLOW,
+        RED_YELLOW
+    }
+
+    private Detection detectionMode = Detection.BLUE_YELLOW;
+
+    public void setDetectionMode(Detection mode) {
+        detectionMode = mode;
+    }
 
     @Override
     public void init() {
@@ -56,7 +74,7 @@ public class Camera extends OpMode {
         int cameraID = Robot.getInstanceHardwareMap().appContext.getResources().getIdentifier("cameraID", "id", Robot.getInstanceHardwareMap().appContext.getPackageName());
 
         webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraID);
-        pipeline = new colorDetection();
+        pipeline = new colorDetection(this);
         webcam.setPipeline(pipeline);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -71,7 +89,9 @@ public class Camera extends OpMode {
     }
 
     @Override
-    public void loop() {}
+    public void loop() {
+
+    }
 
     public double sampleAngle() {
         double normalized = angle / 180.0;
@@ -93,20 +113,85 @@ public class Camera extends OpMode {
 
 
     class colorDetection extends OpenCvPipeline {
+        Camera parent;
+
+        public colorDetection(Camera parent) {
+            this.parent = parent;
+        }
+
         @Override
         public Mat processFrame(Mat input) {
-            Mat BlueMask = preprocessFrame(input);
+            Detection detectionMode = parent.detectionMode;
 
-            List<MatOfPoint> contours = new ArrayList<>();
+            Mat BlueMask = preprocessBlue(input);
+            Mat RedMask = preprocessRed(input);
+            Mat YellowMask = preprocessYellow(input);
+
+
             Mat hierarchy = new Mat();
-            Imgproc.findContours(BlueMask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+            Imgproc.findContours(BlueMask, blues, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+            Imgproc.findContours(RedMask, reds, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+            Imgproc.findContours(YellowMask, yellows, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-            MatOfPoint largestContour = findLargestContour(contours);
+            MatOfPoint maximumBlue = findLargestContour(blues);
+            MatOfPoint maximumRed = findLargestContour(reds);
+            MatOfPoint maximumYellow = findLargestContour(yellows);
+
+            MatOfPoint largestContour = new MatOfPoint();
+
+            if(detectionMode == Detection.BLUE && maximumBlue != null) {
+                largestContour = maximumBlue;
+                contours = blues;
+            }
+            else if(detectionMode == Detection.RED && maximumRed != null)
+            {
+                largestContour = maximumRed;
+                contours = reds;
+            }
+            else if(detectionMode == Detection.BLUE_YELLOW)
+            {
+                double blue = 0.0, yellow = 0.0;
+                if(maximumBlue != null)
+                    blue = Imgproc.contourArea(maximumBlue);
+                if(maximumYellow != null)
+                    yellow = Imgproc.contourArea(maximumYellow);
+
+                if(blue > yellow || (maximumYellow == null && maximumBlue != null)){
+                    largestContour = maximumBlue;
+                    contours = blues;
+                }
+                else if(blue < yellow || (maximumYellow != null && maximumBlue == null)){
+                    largestContour = maximumYellow;
+                    contours = yellows;
+                }
+            }
+            else if(detectionMode == Detection.RED_YELLOW)
+            {
+                double red = 0.0, yellow = 0.0;
+                if(maximumRed != null)
+                    red = Imgproc.contourArea(maximumRed);
+                if(maximumYellow != null)
+                    yellow = Imgproc.contourArea(maximumYellow);
+
+                if(red > yellow || (maximumYellow == null && maximumRed != null)){
+                    largestContour = maximumRed;
+                    contours = reds;
+                }
+                else if(red < yellow || (maximumYellow != null && maximumRed == null)){
+                    largestContour = maximumYellow;
+                    contours = yellows;
+                }
+            }
 
             if (largestContour != null) {
                 Moments moments = Imgproc.moments(largestContour);
                 cX = moments.get_m10() / moments.get_m00();
                 cY = moments.get_m01() / moments.get_m00();
+
+                // Compute tx and ty: normalized offsets from camera center
+                tx = (cX - input.width() / 2.0) / (input.width() / 2.0);
+                ty = (cY - input.height() / 2.0) / (input.height() / 2.0);
+
 
                 Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(0, 255, 255), 2);
                 width = calculateWidth(largestContour);
@@ -122,11 +207,15 @@ public class Camera extends OpMode {
             return input;
         }
 
-        private Mat preprocessFrame(Mat frame) {
+        private Mat preprocessBlue(Mat frame) {
             Mat hsvFrame = new Mat();
             Imgproc.cvtColor(frame, hsvFrame, Imgproc.COLOR_BGR2HSV);
-            Scalar lowerBlue = new Scalar(0, 100, 100);
-            Scalar upperBlue = new Scalar(50, 255, 255);
+
+            Scalar lowerBlue = new Scalar(0, 70, 199);
+            Scalar upperBlue = new Scalar(12, 216, 255);
+
+            //0 100 100
+            //50 255 255
 
             Mat BlueMask = new Mat();
             Core.inRange(hsvFrame, lowerBlue, upperBlue, BlueMask);
@@ -137,6 +226,44 @@ public class Camera extends OpMode {
 
             return BlueMask;
         }
+
+        private Mat preprocessRed(Mat frame) {
+            Mat hsvFrame = new Mat();
+            Imgproc.cvtColor(frame, hsvFrame, Imgproc.COLOR_BGR2HSV);
+
+            // Good range for yellow
+            Scalar lowerRed = new Scalar(115, 88, 0);
+            Scalar upperRed = new Scalar(154, 255, 255);
+
+            Mat redMask = new Mat();
+            Core.inRange(hsvFrame, lowerRed, upperRed, redMask);
+
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
+            Imgproc.morphologyEx(redMask, redMask, Imgproc.MORPH_OPEN, kernel);
+            Imgproc.morphologyEx(redMask, redMask, Imgproc.MORPH_CLOSE, kernel);
+
+            return redMask;
+        }
+
+        private Mat preprocessYellow(Mat frame) {
+            Mat hsvFrame = new Mat();
+            Imgproc.cvtColor(frame, hsvFrame, Imgproc.COLOR_BGR2HSV);
+
+            // Good range for yellow
+            Scalar lowerYellow = new Scalar(17, 51, 149);
+            Scalar upperYellow = new Scalar(121, 255, 255);
+
+
+            Mat yellowMask = new Mat();
+            Core.inRange(hsvFrame, lowerYellow, upperYellow, yellowMask);
+
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
+            Imgproc.morphologyEx(yellowMask, yellowMask, Imgproc.MORPH_OPEN, kernel);
+            Imgproc.morphologyEx(yellowMask, yellowMask, Imgproc.MORPH_CLOSE, kernel);
+
+            return yellowMask;
+        }
+
     }
 
     private MatOfPoint findLargestContour(List<MatOfPoint> contours) {
@@ -159,48 +286,6 @@ public class Camera extends OpMode {
 
     public static double getDistance(double width) {
         return (objectWidthInRealWorldUnits * 720) / width;
-    }
-
-    public double getAngleWithPnP(MatOfPoint contour) {
-        MatOfPoint2f approx = new MatOfPoint2f();
-        Imgproc.approxPolyDP(new MatOfPoint2f(contour.toArray()), approx, 0.02 * Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true), true);
-
-        if (approx.total() != 4) return getAngle(contour);
-
-        Point[] pts = approx.toArray();
-        Arrays.sort(pts, Comparator.comparingDouble(p -> p.y + p.x));
-        Point tl = pts[0], br = pts[3];
-        Arrays.sort(pts, Comparator.comparingDouble(p -> p.y - p.x));
-        Point tr = pts[0], bl = pts[3];
-
-        MatOfPoint2f imagePoints = new MatOfPoint2f(tl, tr, br, bl);
-
-        List<Point3> objPoints = Arrays.asList(
-                new Point3(0, 0, 0),
-                new Point3(3.5, 0, 0),
-                new Point3(3.5, 2.0, 0),
-                new Point3(0, 2.0, 0)
-        );
-        MatOfPoint3f objectPoints = new MatOfPoint3f();
-        objectPoints.fromList(objPoints);
-
-        Mat rvec = new Mat(), tvec = new Mat();
-
-        boolean solved = Calib3d.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, rvec, tvec);
-        if (!solved) return getAngle(contour);
-
-        Mat rotMat = new Mat();
-        Calib3d.Rodrigues(rvec, rotMat);
-
-        double yaw = Math.atan2(rotMat.get(1, 0)[0], rotMat.get(0, 0)[0]);
-        double angleDegrees = Math.toDegrees(yaw);
-
-        // Normalize to range [0, 180]
-        if (angleDegrees < 0) {
-             angleDegrees += 180;
-        }
-        return angleDegrees;
-
     }
     public double getAngle(MatOfPoint contour) {
         if (contour == null || contour.toArray().length == 0) return Double.NaN;

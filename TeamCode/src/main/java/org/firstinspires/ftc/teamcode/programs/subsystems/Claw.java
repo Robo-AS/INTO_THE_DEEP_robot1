@@ -17,31 +17,37 @@ public class Claw extends SubsystemBase {
         PICKUP3,
         SCORE3,
         EXTEND,
-        RETRACT
+        RETRACT,
+        SPEC,
+        UPRIGHT3
     }
 
-    public static double IDLE0 = 1;
+    public static double IDLE0 = 0;
 
-    public static double OPEN = 0.5;
-    public static double CLOSE = 0.25;
-    public static double PICKUP0 = 0.5;
-    public static double PICKUP3 = 0.30;
-    public static double SCORE3 = 0.50;
-    public static double SCORE0 = 0.25;
+    public static double OPEN = 0.25;
+    public static double CLOSE = 0.75;
+    public static double PICKUP0 = 0.7;
+    public static double PICKUP3 = 0.2;
+    public static double SCORE3 = 0.5;
+    public static double SCORE0 = 1;
     public static double EXTEND = 0;
     public static double RETRACT = 0.5;
+    public static double SPEC = 0.35;
+    public static double UPRIGHT3 = 0.15;
+
+
 
     double[] targetPosition = new double[5];
 
     ClawState[] clawState = new ClawState[5];
 
     public void initialize(){
-        robot.servo0.setPosition(1);
-        targetPosition[0] = 1;
+        robot.servo0.setPosition(0);
+        targetPosition[0] = 0;
         robot.servo1.setPosition(0.5);
         targetPosition[1] = 0.5;
-        robot.servo2.setPosition(0.25);
-        targetPosition[2] = 0.25;
+        robot.servo2.setPosition(0.75);
+        targetPosition[2] = 0.75;
         robot.servo3.setPosition(0.15);
         targetPosition[3] = 0.15;
         robot.servo4.setPosition(0.5);
@@ -84,6 +90,12 @@ public class Claw extends SubsystemBase {
                 break;
             case SCORE0:
                 targetPosition[x] = SCORE0;
+                break;
+            case SPEC:
+                targetPosition[x] = SPEC;
+                break;
+            case UPRIGHT3:
+                targetPosition[x] = UPRIGHT3;
                 break;
         }
     }

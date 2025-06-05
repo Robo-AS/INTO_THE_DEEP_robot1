@@ -13,12 +13,14 @@ public class Lift extends SubsystemBase {
     public enum LiftState{
         IDLE,
         SCORE,
-        PICKUP
+        SPECUP,
+        SPECDOWN
     }
 
     public LiftState liftState = LiftState.IDLE;
     public static int IDLE = 0;
-    public static int PICKUP = 50;
+    public static int SPECUP = 1300;
+    public static int SPECDOWN = 700;
     public static int SCORE = 2000;
 
     private PIDController sliders_pid;
@@ -55,8 +57,11 @@ public class Lift extends SubsystemBase {
             case SCORE:
                 targetPosition = SCORE;
                 break;
-            case PICKUP:
-                targetPosition = PICKUP;
+            case SPECDOWN:
+                targetPosition = SPECDOWN;
+                break;
+            case SPECUP:
+                targetPosition = SPECUP;
                 break;
         }
     }

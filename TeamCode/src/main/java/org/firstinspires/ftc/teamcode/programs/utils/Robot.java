@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.programs.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
+import org.firstinspires.ftc.teamcode.programs.subsystems.Camera;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.programs.subsystems.Mecanum;
@@ -30,6 +31,8 @@ public class Robot {
 
     public DcMotorEx armMotor;
     private static Arm arm = null;
+
+ //   public AutoAlignHelper aligner = null;
 
     public Mecanum mecanum;
     public Camera camera;
@@ -107,9 +110,13 @@ public class Robot {
         servo4 = hardwareMap.get(Servo.class, "servo4");
 
         servo3.setDirection(Servo.Direction.REVERSE);
-      //  servo1.setDirection(Servo.Direction.REVERSE);
+        servo0.setDirection(Servo.Direction.REVERSE);
+        servo2.setDirection(Servo.Direction.REVERSE);
+
 
         camera = new Camera();
+
+  //      Robot.getInstance().aligner = new Camera().new AutoAlignHelper();
     }
 
     public void initialize() {

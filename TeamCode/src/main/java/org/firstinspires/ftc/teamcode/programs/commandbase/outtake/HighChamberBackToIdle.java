@@ -10,19 +10,23 @@ import org.firstinspires.ftc.teamcode.programs.subsystems.Lift;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 
-public class FromHighBasketBackToIdle extends SequentialCommandGroup {
-    public FromHighBasketBackToIdle(){
+public class HighChamberBackToIdle extends SequentialCommandGroup {
+    public HighChamberBackToIdle(){
         super(
-                new UpdateClawState(Claw.ClawState.SCORE0, 0),
-                new UpdateClawState(Claw.ClawState.SCORE3, 3),
-                new WaitCommand(500),
-                new UpdateLiftState(Lift.LiftState.SCORE),
-                new UpdateArmState(Arm.ArmState.REAR),
-                new WaitCommand(2000),
-                new UpdateClawState(Claw.ClawState.OPEN, 2),
-                new WaitCommand(2000),
-                new UpdateClawState(Claw.ClawState.CLOSE, 2),
                 new UpdateArmState(Arm.ArmState.FRONT),
+                new WaitCommand(1000),
+                new UpdateClawState(Claw.ClawState.OPEN, 1),
+                new WaitCommand(1000),
+                new UpdateClawState(Claw.ClawState.UPRIGHT3, 3),
+                new WaitCommand(500),
+                new UpdateLiftState(Lift.LiftState.SPECUP),
+                new WaitCommand(500),
+                new UpdateClawState(Claw.ClawState.SPEC, 0),
+                new WaitCommand(1000),
+                new UpdateLiftState(Lift.LiftState.SPECDOWN),
+                new WaitCommand(500),
+                new UpdateClawState(Claw.ClawState.OPEN, 2),
+                new WaitCommand(500),
                 new UpdateLiftState(Lift.LiftState.IDLE)
         );
     }

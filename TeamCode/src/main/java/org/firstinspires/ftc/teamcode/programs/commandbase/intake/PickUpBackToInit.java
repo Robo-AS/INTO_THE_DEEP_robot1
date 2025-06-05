@@ -12,7 +12,7 @@ public class PickUpBackToInit extends SequentialCommandGroup {
     public PickUpBackToInit(){
         super(
                 new UpdateClawState(Claw.ClawState.OPEN, 2),
-                new Servo1SetAngle(),
+                new WaitCommand(500),
                 new UpdateArmState(Arm.ArmState.PICKUP),
                 new WaitCommand(1000),
                 new UpdateClawState(Claw.ClawState.CLOSE, 2),

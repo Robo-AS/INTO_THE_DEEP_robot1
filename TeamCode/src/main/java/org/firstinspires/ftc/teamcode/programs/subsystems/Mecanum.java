@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.programs.utils.Robot;
@@ -84,6 +85,12 @@ public class Mecanum {
     public double addons(double value) {
         if (Math.abs(value) < CONTROLLER_DEADZONE) return 0;
         return value * ROBOT_SPEED;
+    }
+    public void stop() {
+        robot.leftFront.setPower(0);
+        robot.leftRear.setPower(0);
+        robot.rightFront.setPower(0);
+        robot.rightRear.setPower(0);
     }
 
     public void telemetry(Telemetry telemetry) {

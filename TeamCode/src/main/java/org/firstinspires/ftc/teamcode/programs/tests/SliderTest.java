@@ -29,10 +29,10 @@ public class SliderTest extends CommandOpMode {
     public void run(){
         CommandScheduler.getInstance().run();
 
-        robot.getInstanceArm().loop();
+      //  robot.getInstanceArm().loop();
 
-        telemetry.addData("Current Position", robot.armMotor.getCurrentPosition());
-        telemetry.addData("Target Position", robot.getInstanceArm().getTargetPosition());
+        telemetry.addData("Current Position", robot.leftSlider.getCurrentPosition());
+        telemetry.addData("Target Position", robot.leftSlider.getCurrentPosition());
         telemetry.update();
 
     }

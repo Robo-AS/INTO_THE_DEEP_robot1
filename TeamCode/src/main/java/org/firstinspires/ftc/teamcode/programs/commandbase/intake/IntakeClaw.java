@@ -10,9 +10,12 @@ import org.firstinspires.ftc.teamcode.programs.subsystems.Claw;
 public class IntakeClaw extends SequentialCommandGroup {
     public IntakeClaw(){
         super(
-                new UpdateClawState(Claw.ClawState.OPEN, 1),
+             //   new AlignMecanum(),
+             //   new WaitCommand(500),
+                new Servo1SetAngle(),
+                new WaitCommand(500),
                 new UpdateClawState(Claw.ClawState.EXTEND, 4),
-              //  new Servo4Extend(),
+              //  new Servo4Extend(),`
               //  new WaitCommand(500),
                 new UpdateClawState(Claw.ClawState.PICKUP0, 0),
              //   new WaitCommand(500),
