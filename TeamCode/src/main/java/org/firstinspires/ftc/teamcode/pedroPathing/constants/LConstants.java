@@ -6,19 +6,15 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 public class LConstants {
     static {
-        TwoWheelConstants.forwardTicksToInches = .001989436789;
-        TwoWheelConstants.strafeTicksToInches = .001989436789;
-        TwoWheelConstants.forwardY = 1;
-        TwoWheelConstants.strafeX = -2.5;
+        TwoWheelConstants.forwardTicksToInches = .003;
+        TwoWheelConstants.strafeTicksToInches = .0029;
+        TwoWheelConstants.forwardY = 2.953;
+        TwoWheelConstants.strafeX = 9.567;
         TwoWheelConstants.forwardEncoder_HardwareMapName = "leftFront";
-        TwoWheelConstants.strafeEncoder_HardwareMapName = "rightRear";
+        TwoWheelConstants.strafeEncoder_HardwareMapName = "leftBack";
         TwoWheelConstants.forwardEncoderDirection = Encoder.REVERSE;
         TwoWheelConstants.strafeEncoderDirection = Encoder.FORWARD;
         TwoWheelConstants.IMU_HardwareMapName = "imu";
-        TwoWheelConstants.IMU_Orientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
+        TwoWheelConstants.IMU_Orientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP);
     }
 }
-
-
-
-

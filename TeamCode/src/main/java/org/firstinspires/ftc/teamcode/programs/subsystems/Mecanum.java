@@ -1,21 +1,18 @@
 package org.firstinspires.ftc.teamcode.programs.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
+
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.programs.utils.Robot;
 
 import static org.firstinspires.ftc.teamcode.programs.utils.Constants.CONTROLLER_DEADZONE;
 import static org.firstinspires.ftc.teamcode.programs.utils.Constants.ROBOT_SPEED;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.function.DoubleSupplier;
 
 /**
  * Robot centric drive is a drive system that allows the robot to move in a direction relative to the robot
@@ -23,7 +20,7 @@ import java.util.List;
  * @version 1.0
  */
 @Config
-public class Mecanum {
+public class Mecanum extends SubsystemBase {
     double reverse = 1.0;
     public static double powerReduction = 5;
     public double leftFrontPower, rightFrontPower, leftRearPower, rightRearPower, normalizer, x, y, r;
@@ -66,13 +63,6 @@ public class Mecanum {
         robot.rightRear.setPower(rightRearPower/powerReduction);
     }
 
-    public void spin() {
-        robot.leftFront.setPower(0.5);
-        robot.leftRear.setPower(-0.5);
-        robot.rightFront.setPower(-0.5);
-        robot.rightRear.setPower(0.5);
-    }
-
     public void loop(GamepadEx gamepad){
         if(gamepad.isDown(GamepadKeys.Button.LEFT_BUMPER)){
             robot.mecanum.slowMotion(gamepad);
@@ -92,22 +82,7 @@ public class Mecanum {
         robot.rightFront.setPower(0);
         robot.rightRear.setPower(0);
     }
-
-    public void telemetry(Telemetry telemetry) {
-        telemetry.addLine("---ROBOT CENTRIC DRIVE---");
-
-        telemetry.addData("Direction Multiplier: ", reverse);
-        telemetry.addData("Speed Multiplier: ", ROBOT_SPEED);
-
-        telemetry.addData("LeftRear Position: ", robot.leftRear.getCurrentPosition());
-        telemetry.addData("RightRear Position: ", robot.rightRear.getCurrentPosition());
-        telemetry.addData("LeftFront Position: ", robot.leftFront.getCurrentPosition());
-        telemetry.addData("RightFront Position: ", robot.rightFront.getCurrentPosition());
-
-        telemetry.addData("LeftRear Power: ", robot.leftRear.getPower());
-        telemetry.addData("RightRear Power: ", robot.rightRear.getPower());
-        telemetry.addData("LeftFront Power: ", robot.leftFront.getPower());
-        telemetry.addData("RightFront Power: ", robot.rightFront.getPower());
+    public void drive(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+        Robot.getInstance().getInstanceFollower().setTeleOpMovementVectors(xSupplier.getAsDouble(), ySupplier.getAsDouble(), 0, false);
     }
-
 }

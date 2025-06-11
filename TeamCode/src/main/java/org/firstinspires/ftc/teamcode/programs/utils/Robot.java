@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.programs.utils;
 
+import com.pedropathing.follower.Follower;
 import com.qualcomm.ftccommon.CommandList;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -32,7 +33,7 @@ public class Robot {
     public DcMotorEx armMotor;
     private static Arm arm = null;
 
- //   public AutoAlignHelper aligner = null;
+    public static Follower follower = null;
 
     public Mecanum mecanum;
     public Camera camera;
@@ -56,14 +57,15 @@ public class Robot {
     public void initializeHardware(final HardwareMap hardwareMap){
         this.hardwareMap = hardwareMap;
 
-        //mecanum
+        ///mecanum
 
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftRear = hardwareMap.get(DcMotorEx.class, "leftBack");
-        rightRear = hardwareMap.get(DcMotorEx.class, "rightBack");
+        leftRear = hardwareMap.get(DcMotorEx.class, "leftRear");
+        rightRear = hardwareMap.get(DcMotorEx.class, "rightRear");
         rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
 
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+    //    leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
         for (DcMotorEx motor : motors) {
@@ -73,7 +75,7 @@ public class Robot {
         }
 
         mecanum = new Mecanum();
-        //lift
+        ///lift
 
         leftSlider = hardwareMap.get(DcMotorEx.class, "leftSlider");
         rightSlider = hardwareMap.get(DcMotorEx.class, "rightSlider");
@@ -89,7 +91,7 @@ public class Robot {
         rightSlider.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightSlider.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        //arm
+        ///arm
 
         armMotor = hardwareMap.get(DcMotorEx.class, "Circular");
 
@@ -101,7 +103,7 @@ public class Robot {
 
        // Servo extendServo = hardwareMap.get(Servo.class, "extendServo");
 
-        //Claw
+        ///Claw
 
         servo0 = hardwareMap.get(Servo.class, "servo0");
         servo1 = hardwareMap.get(Servo.class, "servo1");
@@ -114,9 +116,10 @@ public class Robot {
         servo2.setDirection(Servo.Direction.REVERSE);
 
 
+        ///Misc
         camera = new Camera();
 
-  //      Robot.getInstance().aligner = new Camera().new AutoAlignHelper();
+        follower = new Follower(Robot.getInstanceHardwareMap());
     }
 
     public void initialize() {
@@ -126,11 +129,19 @@ public class Robot {
         Robot.getInstance().camera.init();
     }
 
+
     public static Lift getInstanceLift(){
         if (lift == null) {
             lift = new Lift();
         }
         return lift;
+    }
+
+    public static Follower getInstanceFollower(){
+        if (follower == null) {
+            follower = new Follower(Robot.getInstanceHardwareMap());
+        }
+        return follower;
     }
     public static Arm getInstanceArm(){
         if (arm == null) {

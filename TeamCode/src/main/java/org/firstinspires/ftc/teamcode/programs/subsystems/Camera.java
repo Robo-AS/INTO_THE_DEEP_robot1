@@ -36,7 +36,7 @@ import java.util.*;
 @TeleOp
 public class Camera extends OpMode {
     List<MatOfPoint> blues = new ArrayList<>(), reds = new ArrayList<>(), yellows = new ArrayList<>(), contours = new ArrayList<>();
-    public double cX = 0, cY = 0, width = 0, angle = 0;
+    public double cX = 0, cY = 0, width = 0, angle = 0, height = 0;
     public static final double objectWidthInRealWorldUnits = 3.5;
     OpenCvWebcam webcam = null;
     colorDetection pipeline;
@@ -97,20 +97,6 @@ public class Camera extends OpMode {
         double normalized = angle / 180.0;
         return Range.clip(normalized, 0.0, 1.0);
     }
-
-    public double sliderPositionFromDistance() {
-        double distance = getDistance(width);
-
-        double minDistance = 5.0;
-        double maxDistance = 15.0;
-
-        double normalized = (maxDistance - distance) / (maxDistance - minDistance);
-
-        double sliderValue = 0.5 * normalized;
-
-        return Range.clip(sliderValue, 0.0, 0.5);
-    }
-
 
     class colorDetection extends OpenCvPipeline {
         Camera parent;
@@ -184,11 +170,16 @@ public class Camera extends OpMode {
             }
 
             if (largestContour != null) {
-                Moments moments = Imgproc.moments(largestContour);
-                cX = moments.get_m10() / moments.get_m00();
-                cY = moments.get_m01() / moments.get_m00();
+                Rect boundingRect = Imgproc.boundingRect(largestContour);
 
-                // Compute tx and ty: normalized offsets from camera center
+                int x = boundingRect.x;
+                int y = boundingRect.y;
+                int w = boundingRect.width;
+                int h = boundingRect.height;
+
+                cX = x + w / 2.0;
+                cY = y + h / 2.0;
+
                 tx = (cX - input.width() / 2.0) / (input.width() / 2.0);
                 ty = (cY - input.height() / 2.0) / (input.height() / 2.0);
 
@@ -196,9 +187,11 @@ public class Camera extends OpMode {
                 Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(0, 255, 255), 2);
                 width = calculateWidth(largestContour);
 
-                angle = getAngle(largestContour);
+                RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(largestContour.toArray()));
 
-                Imgproc.putText(input, "Width: " + (int) width + " px", new Point(cX + 5, cY + 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                angle = getAngle(rect);
+
+                Imgproc.putText(input, "Tx: " + String.format("%.3f", getTx()) + " m, Ty: " + String.format("%.3f", getTy()) + " m", new Point(cX + 5, cY + 80), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                 Imgproc.putText(input, "Distance: " + String.format("%.2f", getDistance(width)) + " in", new Point(cX + 5, cY + 40), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                 Imgproc.putText(input, "Angle: " + String.format("%.2f", angle) + " deg", new Point(cX + 5, cY + 60), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                 Imgproc.circle(input, new Point(cX, cY), 5, new Scalar(0, 255, 0), -1);
@@ -283,27 +276,34 @@ public class Camera extends OpMode {
         Rect boundingRect = Imgproc.boundingRect(contour);
         return boundingRect.width;
     }
+    private double calculateHeight(MatOfPoint contour) {
+        Rect boundingRect = Imgproc.boundingRect(contour);
+        return boundingRect.height;
+    }
 
     public static double getDistance(double width) {
         return (objectWidthInRealWorldUnits * 720) / width;
     }
-    public double getAngle(MatOfPoint contour) {
-        if (contour == null || contour.toArray().length == 0) return Double.NaN;
 
-        RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
-        double angle = rotatedRect.angle;
-        Size size = rotatedRect.size;
+    public double getTx(){
+        return tx;
+    }
 
-        // Normalize the angle based on width and height
-        if (size.width < size.height) {
-            angle += 90;
-        } else {
-            angle += 180;
-        }
+    public double getTy(){
+        return ty;
+    }
+    public double getAngle(RotatedRect rect) {
+        if (rect == null || rect.boundingRect().width == 0)
+            return Double.NaN;
 
-        // Normalize angle to [0, 180]
-        angle = (angle + 360) % 180;
-        return angle;
+        double w = rect.size.width;
+        double h = rect.size.height;
+        double a = rect.angle;
+
+        if(w < h)
+            a = a + 90;
+
+        return a;
     }
 
 }
