@@ -1,0 +1,11 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+        maven { url "https://chaquo.com/maven" }
+    }
+}
+
+include ':FtcRobotController'
+include ':TeamCode'
